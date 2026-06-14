@@ -1,0 +1,641 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary);font-size:14px}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:600px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+.sidebar{background:var(--color-background-secondary);border-right:0.5px solid var(--color-border-tertiary);padding:1rem;display:flex;flex-direction:column;gap:8px}
+.sidebar-logo{font-size:15px;font-weight:500;padding:4px 0 12px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:4px;display:flex;align-items:center;gap:8px;color:var(--color-text-primary)}
+.sidebar-logo i{color:#3C3489}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;color:var(--color-text-secondary);border:none;background:none;width:100%;text-align:left;transition:background .15s}
+.nav-btn:hover{background:var(--color-background-primary);color:var(--color-text-primary)}
+.nav-btn.active{background:var(--color-background-primary);color:#3C3489;font-weight:500;border:0.5px solid var(--color-border-secondary)}
+.nav-btn i{font-size:16px}
+.main{padding:1.5rem;overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.page-title{font-size:18px;font-weight:500}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;cursor:pointer;transition:background .15s,transform .1s;font-family:var(--font-sans)}
+.btn:hover{background:var(--color-background-secondary)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:#3C3489;color:#fff;border-color:#26215C}
+.btn-primary:hover{background:#26215C}
+.btn-danger{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger)}
+.btn-danger:hover{background:#F7C1C1}
+.btn-sm{padding:5px 10px;font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
+.stat-val{font-size:22px;font-weight:500;line-height:1.2}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-top:4px}
+.po-list{display:flex;flex-direction:column;gap:8px}
+.po-item{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s}
+.po-item:hover{border-color:var(--color-border-secondary)}
+.po-num{font-weight:500;font-size:13px;min-width:90px;color:#3C3489}
+.po-vendor{flex:1;font-size:13px}
+.po-amt{font-size:13px;font-weight:500;min-width:90px;text-align:right}
+.po-status{font-size:11px;padding:3px 10px;border-radius:20px;min-width:72px;text-align:center;font-weight:500}
+.status-draft{background:#EAF3DE;color:#27500A}
+.status-sent{background:#E6F1FB;color:#0C447C}
+.status-approved{background:#E1F5EE;color:#085041}
+.status-rejected{background:#FCEBEB;color:#791F1F}
+.status-pending{background:#FAEEDA;color:#633806}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;color:var(--color-text-secondary);font-weight:500}
+input,select,textarea{padding:8px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:13px;background:var(--color-background-primary);color:var(--color-text-primary);font-family:var(--font-sans);width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#7F77DD;box-shadow:0 0 0 2px rgba(127,119,221,.15)}
+textarea{resize:vertical;min-height:60px}
+.section-title{font-size:13px;font-weight:500;margin:1rem 0 8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px}
+.section-title i{font-size:15px;color:#7F77DD}
+.items-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
+.items-table th{background:var(--color-background-secondary);padding:7px 8px;text-align:left;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+.items-table td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+.items-table input{border:none;background:transparent;padding:2px 4px;font-size:12px}
+.items-table input:focus{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:4px}
+.totals-box{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:200px;float:right}
+.total-row{display:flex;gap:24px;font-size:12px}
+.total-row.grand{font-size:14px;font-weight:500;border-top:0.5px solid var(--color-border-secondary);padding-top:6px;margin-top:2px}
+.total-label{color:var(--color-text-secondary)}
+.ai-box{background:#F0F0FD;border:0.5px solid #AFA9EC;border-radius:var(--border-radius-md);padding:12px;margin:12px 0;font-size:12px;color:#3C3489;display:none}
+.ai-box.visible{display:block}
+.ai-loading{display:flex;align-items:center;gap:8px;color:#7F77DD}
+.search-bar{display:flex;gap:8px;margin-bottom:1rem}
+.search-bar input{max-width:260px}
+.vendor-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;display:flex;flex-direction:column;gap:4px}
+.vendor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.vendor-name{font-weight:500;font-size:13px}
+.vendor-meta{font-size:12px;color:var(--color-text-secondary)}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.po-detail-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem}
+.empty{text-align:center;padding:3rem;color:var(--color-text-secondary);font-size:13px}
+.empty i{font-size:40px;display:block;margin-bottom:8px;opacity:.3}
+.clearfix::after{content:"";display:table;clear:both}
+.actions-bar{display:flex;gap:8px;flex-wrap:wrap}
+.tab-bar{display:flex;gap:2px;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:1.5rem}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--color-text-secondary);border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font-sans)}
+.tab.active{color:#3C3489;border-bottom-color:#3C3489;font-weight:500}
+</style>
+
+<h2 class="sr-only">Purchase Order Generator — manage and create purchase orders</h2>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo"><i class="ti ti-file-invoice" aria-hidden="true"></i> PO Manager</div>
+    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</button>
+    <button class="nav-btn" onclick="showPage('create')" id="nav-create"><i class="ti ti-plus" aria-hidden="true"></i> New PO</button>
+    <button class="nav-btn" onclick="showPage('orders')" id="nav-orders"><i class="ti ti-file-text" aria-hidden="true"></i> All Orders</button>
+    <button class="nav-btn" onclick="showPage('vendors')" id="nav-vendors"><i class="ti ti-building-store" aria-hidden="true"></i> Vendors</button>
+    <button class="nav-btn" onclick="showPage('reports')" id="nav-reports"><i class="ti ti-chart-bar" aria-hidden="true"></i> Reports</button>
+  </div>
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <button class="btn btn-primary" onclick="showPage('create')"><i class="ti ti-plus" aria-hidden="true"></i> New PO</button>
+      </div>
+      <div class="stats" id="stats-cards"></div>
+      <div class="section-title"><i class="ti ti-clock" aria-hidden="true"></i> Recent Orders</div>
+      <div class="po-list" id="recent-list"></div>
+    </div>
+
+    <!-- CREATE PO -->
+    <div class="page" id="page-create">
+      <div class="page-header">
+        <div class="page-title" id="create-title">New Purchase Order</div>
+        <div class="actions-bar">
+          <button class="btn" onclick="aiSuggest()"><i class="ti ti-robot" aria-hidden="true"></i> AI Assist ↗</button>
+          <button class="btn" onclick="savePO('draft')"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save Draft</button>
+          <button class="btn btn-primary" onclick="savePO('sent')"><i class="ti ti-send" aria-hidden="true"></i> Send PO</button>
+        </div>
+      </div>
+      <div id="ai-box" class="ai-box"><div id="ai-content"></div></div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>PO Number</label>
+          <input type="text" id="f-ponum" placeholder="PO-2024-001" />
+        </div>
+        <div class="form-group">
+          <label>PO Date</label>
+          <input type="date" id="f-date" />
+        </div>
+        <div class="form-group">
+          <label>Delivery Date</label>
+          <input type="date" id="f-delivery" />
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="f-status">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="approved">Approved</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title"><i class="ti ti-building-store" aria-hidden="true"></i> Vendor Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Vendor Name</label>
+          <input type="text" id="f-vendor" list="vendor-list" placeholder="Select or type vendor" />
+          <datalist id="vendor-list"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Vendor Contact</label>
+          <input type="text" id="f-contact" placeholder="Contact person" />
+        </div>
+        <div class="form-group">
+          <label>Vendor Email</label>
+          <input type="email" id="f-email" placeholder="vendor@company.com" />
+        </div>
+        <div class="form-group">
+          <label>Payment Terms</label>
+          <select id="f-terms">
+            <option>Net 30</option>
+            <option>Net 60</option>
+            <option>Net 90</option>
+            <option>Immediate</option>
+            <option>COD</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Delivery Address</label>
+          <input type="text" id="f-address" placeholder="Delivery address" />
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="f-notes" placeholder="Special instructions or notes..."></textarea>
+        </div>
+      </div>
+
+      <div class="section-title"><i class="ti ti-package" aria-hidden="true"></i> Line Items</div>
+      <table class="items-table">
+        <thead><tr>
+          <th style="width:35%">Description</th>
+          <th style="width:12%">Qty</th>
+          <th style="width:14%">Unit</th>
+          <th style="width:16%">Unit Price</th>
+          <th style="width:15%">Total</th>
+          <th style="width:8%"></th>
+        </tr></thead>
+        <tbody id="items-body"></tbody>
+      </table>
+      <button class="btn btn-sm" onclick="addItem()"><i class="ti ti-plus" aria-hidden="true"></i> Add Line</button>
+
+      <div class="clearfix" style="margin-top:1rem">
+        <div class="totals-box" id="totals-box">
+          <div class="total-row"><span class="total-label">Subtotal</span><span id="t-sub">₹0.00</span></div>
+          <div class="total-row"><span class="total-label">Tax (18%)</span><span id="t-tax">₹0.00</span></div>
+          <div class="total-row grand"><span class="total-label">Total</span><span id="t-total">₹0.00</span></div>
+        </div>
+      </div>
+      <input type="hidden" id="edit-id" value="" />
+    </div>
+
+    <!-- ALL ORDERS -->
+    <div class="page" id="page-orders">
+      <div class="page-header">
+        <div class="page-title">All Orders</div>
+        <button class="btn btn-primary" onclick="showPage('create')"><i class="ti ti-plus" aria-hidden="true"></i> New PO</button>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search by PO number or vendor..." oninput="renderOrders()" />
+        <select id="status-filter" onchange="renderOrders()" style="width:auto">
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="po-list" id="orders-list"></div>
+    </div>
+
+    <!-- VENDORS -->
+    <div class="page" id="page-vendors">
+      <div class="page-header">
+        <div class="page-title">Vendors</div>
+        <button class="btn btn-primary" onclick="openAddVendor()"><i class="ti ti-plus" aria-hidden="true"></i> Add Vendor</button>
+      </div>
+      <div id="add-vendor-form" style="display:none;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:1rem;margin-bottom:1rem">
+        <div class="form-grid">
+          <div class="form-group"><label>Vendor Name</label><input type="text" id="nv-name" placeholder="Company name" /></div>
+          <div class="form-group"><label>Contact</label><input type="text" id="nv-contact" placeholder="Contact person" /></div>
+          <div class="form-group"><label>Email</label><input type="email" id="nv-email" placeholder="email@vendor.com" /></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="nv-phone" placeholder="+91 XXXXX XXXXX" /></div>
+          <div class="form-group full"><label>Address</label><input type="text" id="nv-addr" placeholder="Vendor address" /></div>
+          <div class="form-group"><label>Category</label><select id="nv-cat"><option>Technology</option><option>Manufacturing</option><option>Services</option><option>Logistics</option><option>Raw Materials</option><option>Other</option></select></div>
+          <div class="form-group"><label>Payment Terms</label><select id="nv-terms"><option>Net 30</option><option>Net 60</option><option>Net 90</option><option>Immediate</option></select></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="saveVendor()">Save Vendor</button>
+          <button class="btn btn-sm" onclick="closeAddVendor()">Cancel</button>
+        </div>
+      </div>
+      <div class="vendor-grid" id="vendor-grid"></div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div class="page-header"><div class="page-title">Reports</div></div>
+      <div class="tab-bar">
+        <button class="tab active" onclick="showTab('rep-summary')">Summary</button>
+        <button class="tab" onclick="showTab('rep-vendor')">By Vendor</button>
+        <button class="tab" onclick="showTab('rep-status')">By Status</button>
+      </div>
+      <div id="rep-summary" class="rep-tab"></div>
+      <div id="rep-vendor" class="rep-tab" style="display:none"></div>
+      <div id="rep-status" class="rep-tab" style="display:none"></div>
+    </div>
+
+    <!-- PO DETAIL VIEW -->
+    <div class="page" id="page-detail">
+      <div id="detail-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const TAX_RATE = 0.18;
+let db = {
+  orders: JSON.parse(localStorage.getItem('po_orders')||'[]'),
+  vendors: JSON.parse(localStorage.getItem('po_vendors')||'[]')
+};
+if(!db.vendors.length) db.vendors = [
+  {id:'v1',name:'Tata Consultancy Services',contact:'Ramesh Kumar',email:'procurement@tcs.com',phone:'+91 22 6778 9999',address:'Mumbai, Maharashtra',category:'Technology',terms:'Net 30'},
+  {id:'v2',name:'Infosys Supply Chain',contact:'Priya Iyer',email:'supply@infosys.com',phone:'+91 80 2852 0261',address:'Bangalore, Karnataka',category:'Services',terms:'Net 60'},
+  {id:'v3',name:'L&T Industrial',contact:'Sanjay Mehta',email:'orders@lnt.com',phone:'+91 22 6705 0505',address:'Chennai, Tamil Nadu',category:'Manufacturing',terms:'Net 90'}
+];
+saveDB();
+
+function saveDB(){
+  localStorage.setItem('po_orders',JSON.stringify(db.orders));
+  localStorage.setItem('po_vendors',JSON.stringify(db.vendors));
+}
+
+function fmt(n){return '₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function uid(){return 'po_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)}
+function vuid(){return 'v'+Date.now()}
+function nextPONum(){
+  const y=new Date().getFullYear();
+  const count = db.orders.filter(o=>o.ponum.includes(y)).length+1;
+  return 'PO-'+y+'-'+String(count).padStart(3,'0');
+}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const nb=document.getElementById('nav-'+p);
+  if(nb)nb.classList.add('active');
+  if(p==='dashboard')renderDashboard();
+  if(p==='orders')renderOrders();
+  if(p==='vendors')renderVendors();
+  if(p==='reports')renderReports();
+  if(p==='create'&&!document.getElementById('edit-id').value){initCreateForm();}
+}
+
+function statusBadge(s){
+  const cls={draft:'status-draft',sent:'status-sent',approved:'status-approved',rejected:'status-rejected',pending:'status-pending'}[s]||'status-draft';
+  return `<span class="po-status ${cls}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;
+}
+
+function renderDashboard(){
+  const orders=db.orders;
+  const total=orders.reduce((a,o)=>a+o.total,0);
+  const approved=orders.filter(o=>o.status==='approved');
+  const pending=orders.filter(o=>o.status==='pending'||o.status==='sent');
+  document.getElementById('stats-cards').innerHTML=`
+    <div class="stat-card"><div class="stat-val">${orders.length}</div><div class="stat-label">Total Orders</div></div>
+    <div class="stat-card"><div class="stat-val">${fmt(total)}</div><div class="stat-label">Total Value</div></div>
+    <div class="stat-card"><div class="stat-val">${approved.length}</div><div class="stat-label">Approved</div></div>
+    <div class="stat-card"><div class="stat-val">${pending.length}</div><div class="stat-label">Pending</div></div>
+  `;
+  const recent=[...orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const el=document.getElementById('recent-list');
+  if(!recent.length){el.innerHTML='<div class="empty"><i class="ti ti-file-off" aria-hidden="true"></i>No orders yet — create your first PO</div>';return;}
+  el.innerHTML=recent.map(o=>`
+    <div class="po-item" onclick="viewPO('${o.id}')">
+      <span class="po-num">${o.ponum}</span>
+      <span class="po-vendor">${o.vendor}</span>
+      <span style="font-size:12px;color:var(--color-text-secondary)">${o.date}</span>
+      ${statusBadge(o.status)}
+      <span class="po-amt">${fmt(o.total)}</span>
+    </div>`).join('');
+}
+
+function renderOrders(){
+  const q=(document.getElementById('search-input').value||'').toLowerCase();
+  const sf=document.getElementById('status-filter').value;
+  let list=[...db.orders].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(q)list=list.filter(o=>o.ponum.toLowerCase().includes(q)||o.vendor.toLowerCase().includes(q));
+  if(sf)list=list.filter(o=>o.status===sf);
+  const el=document.getElementById('orders-list');
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-search-off" aria-hidden="true"></i>No orders found</div>';return;}
+  el.innerHTML=list.map(o=>`
+    <div class="po-item" onclick="viewPO('${o.id}')">
+      <span class="po-num">${o.ponum}</span>
+      <span class="po-vendor">${o.vendor}</span>
+      <span style="font-size:12px;color:var(--color-text-secondary);min-width:90px">${o.date}</span>
+      ${statusBadge(o.status)}
+      <span class="po-amt">${fmt(o.total)}</span>
+    </div>`).join('');
+}
+
+function viewPO(id){
+  const o=db.orders.find(x=>x.id===id);
+  if(!o)return;
+  showPage('detail');
+  document.getElementById('nav-orders').classList.add('active');
+  document.getElementById('detail-content').innerHTML=`
+    <div class="po-detail-header">
+      <div>
+        <div style="font-size:18px;font-weight:500;margin-bottom:4px">${o.ponum}</div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">Created ${o.date}${o.delivery?' · Delivery '+o.delivery:''}</div>
+      </div>
+      <div class="actions-bar">
+        ${statusBadge(o.status)}
+        <button class="btn btn-sm" onclick="editPO('${o.id}')"><i class="ti ti-edit" aria-hidden="true"></i> Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deletePO('${o.id}')"><i class="ti ti-trash" aria-hidden="true"></i> Delete</button>
+        <button class="btn btn-sm" onclick="showPage('orders')"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="vendor-card">
+        <div class="vendor-name"><i class="ti ti-building-store" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>${o.vendor}</div>
+        ${o.contact?`<div class="vendor-meta">${o.contact}</div>`:''}
+        ${o.email?`<div class="vendor-meta"><i class="ti ti-mail" style="font-size:12px;margin-right:4px" aria-hidden="true"></i>${o.email}</div>`:''}
+        ${o.terms?`<div class="vendor-meta">Terms: ${o.terms}</div>`:''}
+      </div>
+      <div class="vendor-card">
+        <div class="vendor-name"><i class="ti ti-map-pin" style="font-size:14px;margin-right:6px" aria-hidden="true"></i>Delivery</div>
+        <div class="vendor-meta">${o.address||'—'}</div>
+        ${o.notes?`<div class="vendor-meta" style="margin-top:6px;font-style:italic">"${o.notes}"</div>`:''}
+      </div>
+    </div>
+    <div class="section-title"><i class="ti ti-package" aria-hidden="true"></i> Line Items</div>
+    <table class="items-table" style="margin-bottom:1rem">
+      <thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Unit Price</th><th>Total</th></tr></thead>
+      <tbody>${(o.items||[]).map(i=>`<tr><td>${i.desc}</td><td>${i.qty}</td><td>${i.unit||'—'}</td><td>${fmt(i.price)}</td><td>${fmt(i.qty*i.price)}</td></tr>`).join('')}</tbody>
+    </table>
+    <div class="clearfix">
+      <div class="totals-box">
+        <div class="total-row"><span class="total-label">Subtotal</span><span>${fmt(o.subtotal)}</span></div>
+        <div class="total-row"><span class="total-label">Tax (18%)</span><span>${fmt(o.tax)}</span></div>
+        <div class="total-row grand"><span class="total-label">Total</span><span>${fmt(o.total)}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function editPO(id){
+  const o=db.orders.find(x=>x.id===id);
+  if(!o)return;
+  showPage('create');
+  document.getElementById('create-title').textContent='Edit Purchase Order';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('f-ponum').value=o.ponum;
+  document.getElementById('f-date').value=o.date;
+  document.getElementById('f-delivery').value=o.delivery||'';
+  document.getElementById('f-status').value=o.status;
+  document.getElementById('f-vendor').value=o.vendor;
+  document.getElementById('f-contact').value=o.contact||'';
+  document.getElementById('f-email').value=o.email||'';
+  document.getElementById('f-terms').value=o.terms||'Net 30';
+  document.getElementById('f-address').value=o.address||'';
+  document.getElementById('f-notes').value=o.notes||'';
+  const tbody=document.getElementById('items-body');
+  tbody.innerHTML='';
+  (o.items||[]).forEach(i=>addItem(i));
+  calcTotals();
+}
+
+function deletePO(id){
+  if(!confirm('Delete this purchase order?'))return;
+  db.orders=db.orders.filter(x=>x.id!==id);
+  saveDB();
+  showPage('orders');
+}
+
+function initCreateForm(){
+  document.getElementById('create-title').textContent='New Purchase Order';
+  document.getElementById('edit-id').value='';
+  document.getElementById('f-ponum').value=nextPONum();
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-delivery').value='';
+  document.getElementById('f-status').value='draft';
+  document.getElementById('f-vendor').value='';
+  document.getElementById('f-contact').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-terms').value='Net 30';
+  document.getElementById('f-address').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('items-body').innerHTML='';
+  document.getElementById('ai-box').classList.remove('visible');
+  addItem();addItem();addItem();
+  calcTotals();
+  updateVendorList();
+}
+
+function updateVendorList(){
+  const dl=document.getElementById('vendor-list');
+  dl.innerHTML=db.vendors.map(v=>`<option value="${v.name}">`).join('');
+}
+
+let itemCount=0;
+function addItem(data={}){
+  const id='item-'+(++itemCount);
+  const row=document.createElement('tr');
+  row.id=id;
+  row.innerHTML=`
+    <td><input type="text" placeholder="Item description" value="${data.desc||''}" class="i-desc" oninput="calcTotals()" /></td>
+    <td><input type="number" placeholder="1" value="${data.qty||''}" class="i-qty" min="0" step="any" oninput="calcTotals()" style="width:60px" /></td>
+    <td><input type="text" placeholder="pcs" value="${data.unit||''}" class="i-unit" style="width:60px" /></td>
+    <td><input type="number" placeholder="0.00" value="${data.price||''}" class="i-price" min="0" step="any" oninput="calcTotals()" style="width:80px" /></td>
+    <td id="${id}-total" style="font-weight:500">₹0.00</td>
+    <td><button class="btn btn-sm" onclick="document.getElementById('${id}').remove();calcTotals()" style="padding:3px 6px;border-color:var(--color-border-danger);color:var(--color-text-danger)"><i class="ti ti-x" aria-hidden="true"></i></button></td>
+  `;
+  document.getElementById('items-body').appendChild(row);
+  calcTotals();
+}
+
+function calcTotals(){
+  let sub=0;
+  document.querySelectorAll('#items-body tr').forEach(row=>{
+    const qty=parseFloat(row.querySelector('.i-qty')?.value)||0;
+    const price=parseFloat(row.querySelector('.i-price')?.value)||0;
+    const line=qty*price;
+    sub+=line;
+    const tc=row.querySelector('[id$="-total"]');
+    if(tc)tc.textContent='₹'+line.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+  });
+  const tax=sub*TAX_RATE;
+  document.getElementById('t-sub').textContent=fmt(sub);
+  document.getElementById('t-tax').textContent=fmt(tax);
+  document.getElementById('t-total').textContent=fmt(sub+tax);
+}
+
+function getItems(){
+  return Array.from(document.querySelectorAll('#items-body tr')).map(row=>({
+    desc:row.querySelector('.i-desc')?.value||'',
+    qty:parseFloat(row.querySelector('.i-qty')?.value)||0,
+    unit:row.querySelector('.i-unit')?.value||'',
+    price:parseFloat(row.querySelector('.i-price')?.value)||0
+  })).filter(i=>i.desc||i.qty);
+}
+
+function savePO(forceStatus){
+  const ponum=document.getElementById('f-ponum').value.trim();
+  const vendor=document.getElementById('f-vendor').value.trim();
+  if(!ponum||!vendor){alert('PO number and vendor are required.');return;}
+  const items=getItems();
+  if(!items.length){alert('Add at least one line item.');return;}
+  const sub=items.reduce((a,i)=>a+i.qty*i.price,0);
+  const tax=sub*TAX_RATE;
+  const eid=document.getElementById('edit-id').value;
+  const po={
+    id:eid||uid(),
+    ponum,
+    date:document.getElementById('f-date').value,
+    delivery:document.getElementById('f-delivery').value,
+    status:forceStatus||document.getElementById('f-status').value,
+    vendor,
+    contact:document.getElementById('f-contact').value,
+    email:document.getElementById('f-email').value,
+    terms:document.getElementById('f-terms').value,
+    address:document.getElementById('f-address').value,
+    notes:document.getElementById('f-notes').value,
+    items,subtotal:sub,tax,total:sub+tax
+  };
+  if(eid){const idx=db.orders.findIndex(x=>x.id===eid);if(idx>-1)db.orders[idx]=po;else db.orders.push(po);}
+  else db.orders.push(po);
+  saveDB();
+  document.getElementById('edit-id').value='';
+  viewPO(po.id);
+}
+
+async function aiSuggest(){
+  const vendor=document.getElementById('f-vendor').value;
+  const notes=document.getElementById('f-notes').value;
+  const items=getItems();
+  const box=document.getElementById('ai-box');
+  const content=document.getElementById('ai-content');
+  box.classList.add('visible');
+  content.innerHTML='<div class="ai-loading"><i class="ti ti-robot" aria-hidden="true"></i> Generating suggestions...</div>';
+  const prompt=`You are a procurement assistant. Based on this PO context, provide brief helpful suggestions:
+Vendor: ${vendor||'not specified'}
+Notes: ${notes||'none'}
+Items: ${items.map(i=>i.desc).filter(Boolean).join(', ')||'none yet'}
+
+Give 2-3 short actionable suggestions to improve this PO (terms, missing items, risks). Keep each under 2 sentences. Format as plain text with • bullets.`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:300,messages:[{role:'user',content:prompt}]})
+    });
+    const d=await r.json();
+    const text=d.content?.map(c=>c.text||'').join('')||'No suggestions available.';
+    content.innerHTML='<div style="font-size:12px;color:#3C3489;font-weight:500;margin-bottom:6px"><i class="ti ti-robot" aria-hidden="true"></i> AI Suggestions</div><div style="color:var(--color-text-primary);font-size:12px;line-height:1.6;white-space:pre-wrap">'+text+'</div>';
+  }catch(e){
+    content.innerHTML='<span style="color:var(--color-text-danger)">Could not load AI suggestions. Check your connection.</span>';
+  }
+}
+
+function renderVendors(){
+  updateVendorList();
+  const el=document.getElementById('vendor-grid');
+  if(!db.vendors.length){el.innerHTML='<div class="empty"><i class="ti ti-building-off" aria-hidden="true"></i>No vendors added yet</div>';return;}
+  el.innerHTML=db.vendors.map(v=>{
+    const vorders=db.orders.filter(o=>o.vendor===v.name);
+    const vtotal=vorders.reduce((a,o)=>a+o.total,0);
+    return `<div class="vendor-card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="vendor-name">${v.name}</div>
+        <span class="badge" style="background:#EAF3DE;color:#27500A">${v.category}</span>
+      </div>
+      <div class="vendor-meta"><i class="ti ti-user" style="font-size:12px;margin-right:4px" aria-hidden="true"></i>${v.contact}</div>
+      <div class="vendor-meta"><i class="ti ti-mail" style="font-size:12px;margin-right:4px" aria-hidden="true"></i>${v.email}</div>
+      <div class="vendor-meta"><i class="ti ti-phone" style="font-size:12px;margin-right:4px" aria-hidden="true"></i>${v.phone||'—'}</div>
+      <div class="vendor-meta" style="margin-top:4px">Terms: ${v.terms} · ${vorders.length} orders · ${fmt(vtotal)}</div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn btn-sm" onclick="newPOForVendor('${v.id}')"><i class="ti ti-plus" aria-hidden="true"></i> New PO</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteVendor('${v.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAddVendor(){document.getElementById('add-vendor-form').style.display='block';}
+function closeAddVendor(){document.getElementById('add-vendor-form').style.display='none';}
+function saveVendor(){
+  const name=document.getElementById('nv-name').value.trim();
+  if(!name){alert('Vendor name is required.');return;}
+  db.vendors.push({id:vuid(),name,contact:document.getElementById('nv-contact').value,email:document.getElementById('nv-email').value,phone:document.getElementById('nv-phone').value,address:document.getElementById('nv-addr').value,category:document.getElementById('nv-cat').value,terms:document.getElementById('nv-terms').value});
+  saveDB();closeAddVendor();renderVendors();
+}
+function deleteVendor(id){
+  if(!confirm('Delete this vendor?'))return;
+  db.vendors=db.vendors.filter(v=>v.id!==id);
+  saveDB();renderVendors();
+}
+function newPOForVendor(id){
+  const v=db.vendors.find(x=>x.id===id);
+  if(!v)return;
+  initCreateForm();
+  showPage('create');
+  document.getElementById('f-vendor').value=v.name;
+  document.getElementById('f-contact').value=v.contact;
+  document.getElementById('f-email').value=v.email;
+  document.getElementById('f-terms').value=v.terms;
+  document.getElementById('f-address').value=v.address;
+}
+
+function showTab(id){
+  document.querySelectorAll('.rep-tab').forEach(x=>x.style.display='none');
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById(id).style.display='block';
+  event.target.classList.add('active');
+}
+
+function renderReports(){
+  const orders=db.orders;
+  const total=orders.reduce((a,o)=>a+o.total,0);
+  const avg=orders.length?total/orders.length:0;
+  document.getElementById('rep-summary').innerHTML=`
+    <div class="stats">
+      <div class="stat-card"><div class="stat-val">${orders.length}</div><div class="stat-label">Total POs</div></div>
+      <div class="stat-card"><div class="stat-val">${fmt(total)}</div><div class="stat-label">Total Spend</div></div>
+      <div class="stat-card"><div class="stat-val">${fmt(avg)}</div><div class="stat-label">Average PO Value</div></div>
+      <div class="stat-card"><div class="stat-val">${db.vendors.length}</div><div class="stat-label">Active Vendors</div></div>
+    </div>
+    <div class="section-title"><i class="ti ti-calendar" aria-hidden="true"></i> Monthly Breakdown</div>
+    ${monthlyTable(orders)}
+  `;
+  const byVendor={};
+  orders.forEach(o=>{byVendor[o.vendor]=(byVendor[o.vendor]||0)+o.total;});
+  const vRows=Object.entries(byVendor).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('rep-vendor').innerHTML=vRows.length?`<table class="items-table"><thead><tr><th>Vendor</th><th>Orders</th><th>Total Spend</th></tr></thead><tbody>${vRows.map(([v,t])=>`<tr><td>${v}</td><td>${orders.filter(o=>o.vendor===v).length}</td><td>${fmt(t)}</td></tr>`).join('')}</tbody></table>`:'<div class="empty">No data</div>';
+  const statuses=['draft','sent','approved','pending','rejected'];
+  const sRows=statuses.map(s=>[s,orders.filter(o=>o.status===s)]);
+  document.getElementById('rep-status').innerHTML=`<table class="items-table"><thead><tr><th>Status</th><th>Count</th><th>Total Value</th></tr></thead><tbody>${sRows.map(([s,os])=>`<tr><td>${statusBadge(s)}</td><td>${os.length}</td><td>${fmt(os.reduce((a,o)=>a+o.total,0))}</td></tr>`).join('')}</tbody></table>`;
+}
+
+function monthlyTable(orders){
+  const months={};
+  orders.forEach(o=>{const m=o.date.slice(0,7);months[m]=(months[m]||[]).concat(o);});
+  const sorted=Object.keys(months).sort().reverse().slice(0,6);
+  if(!sorted.length)return '<div class="empty">No data yet</div>';
+  return `<table class="items-table"><thead><tr><th>Month</th><th>Orders</th><th>Total</th></tr></thead><tbody>${sorted.map(m=>`<tr><td>${m}</td><td>${months[m].length}</td><td>${fmt(months[m].reduce((a,o)=>a+o.total,0))}</td></tr>`).join('')}</tbody></table>`;
+}
+
+renderDashboard();
+updateVendorList();
+</script>
